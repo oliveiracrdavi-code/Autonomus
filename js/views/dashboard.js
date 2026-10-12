@@ -262,10 +262,14 @@
     const i = Math.max(0, cycle.findIndex((b) => b.id === state.cursorId));
     const n = Math.min(12, cycle.length);
     const nodes = Array.from({ length: n }, (_, k) => ({ block: cycle[(i + k) % cycle.length], pos: ((i + k) % cycle.length) + 1 }));
-    return ui.card('Trilha do ciclo', h('ol', { class: 'trail' }, nodes.map((node, k) => h('li', { class: `trail-node ${k === 0 ? 'is-next' : ''}` },
+    const runs = an.blockRuns(cycle, i, n);
+    const block = runs.maxRun >= 2
+      ? h('p', { class: 'notice warn' }, h('strong', null, `Bloqueio: ${runs.maxRun} blocos seguidos de ${store.subjectName(runs.subjectId)}.`), ' Intercalar outra matéria ajuda a fixar a diferença entre institutos parecidos.')
+      : null;
+    return ui.card('Trilha do ciclo', h('div', { class: 'stack' }, block, h('ol', { class: 'trail' }, nodes.map((node, k) => h('li', { class: `trail-node ${k === 0 ? 'is-next' : ''}` },
       h('span', { class: 'trail-dot' }, String(node.pos)),
       h('span', { class: 'trail-name' }, store.subjectName(node.block.subjectId)),
-      k === 0 ? h('span', { class: 'tiny' }, 'próximo') : null))),
+      k === 0 ? h('span', { class: 'tiny' }, 'próximo') : null)))),
       { sub: `Os próximos ${n} blocos de ${cycle.length}. O primeiro é o da próxima sessão.`, actions: h('a', { class: 'small', href: '#/ciclo' }, 'Editar ciclo') });
   }
 
@@ -280,6 +284,7 @@
           h('span', null, r.label),
           h('span', { class: 'small muted' }, `${U.fmtInt(r.value)} de ${U.fmtInt(r.target)} ${r.unit}`)),
         ui.progressBar(r.pct, r.pct >= 100 ? 'ok' : 'primary')))),
+      (() => { const floor = window.OAB.lib.planner.suggestedFloor(activity, today); return floor ? h('p', { class: 'small muted' }, `Piso sugerido para dias difíceis: ${floor} min (metade do seu ritmo recente). Constância vale mais que perfeição.`) : null; })(),
       h('a', { class: 'small', href: '#/config' }, 'Ajustar metas diárias')),
       { sub: 'Hoje. Dias sem estudo não geram cobrança nem acúmulo.' });
   }
@@ -298,6 +303,44 @@
       h('p', { class: 'forecast' }, 'Ciclo completo em ', h('strong', null, U.fmtDate(f.dateFull))),
       h('p', { class: 'tiny muted' }, `Ritmo: ${String(f.perWeek).replace('.', ',')} sessão(ões) por semana, nas últimas 4 semanas.`)),
       { sub: 'Projeção a partir do ritmo registrado' });
+  }
+
+  /* ---------- matriz de certeza e flashcards ---------- */
+  function certaintyCard(state) {
+    const m = stats.certaintyMatrix(state.logs);
+    if (!m.total) {
+      return ui.card('Matriz de certeza', ui.empty('Ainda sem dados de certeza', 'Ao registrar uma questão individual, marque se teve certeza, dúvida ou chutou. A matriz mostra onde está a convicção errada.',
+        h('a', { class: 'btn sm', href: '#/questoes' }, 'Registrar questão')));
+    }
+    const rows = [['certeza', 'Certeza'], ['duvida', 'Dúvida'], ['chute', 'Chute']];
+    const cell = (kind, key) => {
+      const c = m.cells[kind];
+      const n = c[key];
+      const danger = kind === 'certeza' && key === 'erro';
+      return h('div', { class: `matrix-cell ${danger ? 'danger' : key === 'acerto' ? 'good' : ''}` },
+        h('strong', null, String(n)),
+        h('span', { class: 'tiny muted' }, danger ? 'convicção errada' : key === 'acerto' ? 'acertou' : 'errou'));
+    };
+    return ui.card('Matriz de certeza', h('div', { class: 'stack' },
+      h('div', { class: 'matrix' },
+        h('span', null), h('span', { class: 'tiny muted center' }, 'Acertou'), h('span', { class: 'tiny muted center' }, 'Errou'),
+        rows.flatMap(([kind, label]) => [h('span', { class: 'matrix-row' }, label), cell(kind, 'acerto'), cell(kind, 'erro')])),
+      m.convictionWrong
+        ? h('p', { class: 'notice bad' }, h('strong', null, `${m.convictionWrong} erro(s) com certeza.`), ' Comece a revisão por eles: são as regras em que você mais confia e erra.')
+        : h('p', { class: 'small muted' }, 'Nenhuma convicção errada registrada. Continue marcando a certeza de cada questão.')),
+      { sub: 'Certeza × resultado nas questões individuais' });
+  }
+
+  function flashCard(state) {
+    const today = U.todayISO();
+    const sum = window.OAB.lib.flashcards.summary(state.errors, state.cards, today);
+    return ui.card('Revisão de hoje', h('div', { class: 'stack' },
+      h('p', { class: 'big-num' }, sum.total ? `${sum.due} cartão(ões)` : 'Sem cartões'),
+      h('p', { class: 'small muted' }, sum.total
+        ? `${sum.mastered} dominado(s) de ${sum.total}. Cartões vencem conforme você lembra ou esquece.`
+        : 'Um item do caderno vira cartão quando tem a regra correta preenchida.'),
+      h('div', { class: 'actions' }, h('a', { class: 'btn primary sm', href: '#/flashcards' }, ui.icon('cards'), sum.due ? 'Revisar agora' : 'Abrir flashcards'))),
+      { sub: 'Repetição espaçada a partir do caderno' });
   }
 
   /* ---------- tela ---------- */
@@ -374,6 +417,7 @@
       h('div', { class: 'grid-3' }, streakCard(activity, today, streakInfo), rhythmCard(activity, today), levelCard(now, state)),
       h('div', { class: 'grid-3' }, countdownCard(state, today), prioritiesCard(state), forecastCard(state)),
       h('div', { class: 'grid-2' }, dailyGoalCard(state, activity, today), cycleForecastCard(state, today)),
+      h('div', { class: 'grid-2' }, certaintyCard(state), flashCard(state)),
       h('div', { class: 'grid-2' }, coverageCard(state), bestWorst),
       chartsGrid,
       achievementsCard(state, now, streakInfo));

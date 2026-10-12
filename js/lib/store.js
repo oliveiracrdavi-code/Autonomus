@@ -186,6 +186,7 @@
         blank: value.blank,
         minutes: value.minutes,
         notes: value.notes,
+        certainty: value.certainty || null,
       });
       return log;
     });

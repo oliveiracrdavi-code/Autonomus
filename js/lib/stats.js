@@ -197,8 +197,27 @@
     return { totalMs: ms, teoriaMs: teoria, questoesMs: questoes, concluded, count: sessions.length };
   }
 
+  /**
+   * Matriz de certeza: para questões individuais com nível de certeza, cruza certeza × resultado.
+   * Convicção errada (certeza + erro) é o quadrante mais perigoso: é onde a revisão deve começar.
+   */
+  function certaintyMatrix(logs) {
+    const cells = {
+      certeza: { acerto: 0, erro: 0 },
+      duvida: { acerto: 0, erro: 0 },
+      chute: { acerto: 0, erro: 0 },
+    };
+    for (const l of logs) {
+      if (l.mode !== 'individual' || !cells[l.certainty]) continue;
+      if (l.correct === 1) cells[l.certainty].acerto += 1;
+      else if (l.wrong === 1) cells[l.certainty].erro += 1;
+    }
+    const total = Object.values(cells).reduce((n, c) => n + c.acerto + c.erro, 0);
+    return { cells, total, convictionWrong: cells.certeza.erro, guessRight: cells.chute.acerto };
+  }
+
   return {
     MIN_SAMPLE, totals, bySubject, byTopic, bySubtopic, timelineByWeek, hoursBySubject,
-    rankSubjects, recurringGroups, simuladoSeries, goalStatus, sessionSummary,
+    rankSubjects, recurringGroups, simuladoSeries, goalStatus, sessionSummary, certaintyMatrix,
   };
 });

@@ -141,3 +141,31 @@ test('modo prova: tempo acumula com pausa e não conta com o app fechado', () =>
   prova.pause(d, 70 * 60000);
   assert.equal(prova.elapsed(d, 999 * 60000), 20 * 60000); // 10 min antes da pausa + 10 min depois
 });
+
+test('bloqueio: detecta blocos seguidos da mesma matéria no ciclo circular', () => {
+  const cycle = [{ subjectId: 'a' }, { subjectId: 'b' }, { subjectId: 'b' }, { subjectId: 'b' }, { subjectId: 'c' }];
+  const an = require('../js/lib/analytics');
+  const r = an.blockRuns(cycle, 0, 5);
+  assert.equal(r.maxRun, 3);
+  assert.equal(r.subjectId, 'b');
+  // a partir do índice 4 (c), 0 (a), 1 (b): nenhum bloco seguido igual
+  assert.equal(an.blockRuns(cycle, 4, 3).maxRun, 1);
+  const intercalado = [{ subjectId: 'a' }, { subjectId: 'b' }, { subjectId: 'c' }];
+  assert.equal(an.blockRuns(intercalado, 0, 3).maxRun, 1);
+});
+
+test('meta-piso: metade do ritmo recente, arredondada a 15 min; sem dados, nada', () => {
+  const today = '2026-10-12';
+  const act = new Map();
+  [0, 1, 2, 3].forEach((i) => act.set(U.addDays(today, -i), { minutes: 120, questions: 0, reviews: 0 }));
+  assert.equal(planner.suggestedFloor(act, today), 60);
+  assert.equal(planner.suggestedFloor(new Map([[today, { minutes: 90 }]]), today), null);
+  const pouco = new Map([0, 1, 2].map((i) => [U.addDays(today, -i), { minutes: 10 }]));
+  assert.equal(planner.suggestedFloor(pouco, today), 15, 'piso mínimo de 15 min');
+});
+
+test('tutor: modo Feynman existe e pede avaliação de lacunas sem entregar a resposta', () => {
+  const tutor = require('../js/lib/tutor');
+  assert.ok(tutor.MODES.feynman);
+  assert.match(tutor.MODES.feynman.system, /lacuna/);
+});

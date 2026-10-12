@@ -128,6 +128,24 @@
     ];
   }
 
+  /**
+   * Bloqueio: sequência de blocos seguidos da mesma matéria a partir de `start` (ciclo circular).
+   * Devolve a maior sequência e a matéria dela. Intercalar reduz o bloqueio no aprendizado.
+   */
+  function blockRuns(cycle, start, n, subjectOf) {
+    if (!cycle.length) return { maxRun: 0, subjectId: null, at: 0 };
+    let best = { maxRun: 1, subjectId: null, at: 0 };
+    let run = 1;
+    for (let k = 1; k < Math.min(n, cycle.length); k++) {
+      const prev = cycle[(start + k - 1) % cycle.length].subjectId;
+      const cur = cycle[(start + k) % cycle.length].subjectId;
+      if (cur === prev) run += 1; else run = 1;
+      if (run > best.maxRun) best = { maxRun: run, subjectId: cur, at: k - run + 1 };
+    }
+    if (best.maxRun === 1) return { maxRun: 1, subjectId: null, at: 0 };
+    return best;
+  }
+
   /** Ritmo dos últimos 7 dias (minutos por dia), do mais antigo para o mais recente. */
   function weekRhythm(activity, today) {
     return Array.from({ length: 7 }, (_, i) => {
@@ -180,5 +198,5 @@
     return U.diffDays(today, examDate);
   }
 
-  return { XP, activityByDay, activeDays, streak, heatmapGrid, xpInfo, achievements, weekRhythm, priorities, forecast, countdown };
+  return { XP, activityByDay, activeDays, streak, heatmapGrid, xpInfo, achievements, weekRhythm, priorities, forecast, countdown, blockRuns };
 });

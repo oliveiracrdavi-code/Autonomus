@@ -7,6 +7,7 @@
 
   const ROUTES = [
     { id: 'inicio', label: 'Início', icon: 'home', group: 'Estudo' },
+    { id: 'tutor', label: 'Tutor de estudo', icon: 'chat', group: 'Inteligência' },
     { id: 'sessao', label: 'Sessão de estudo', icon: 'timer', group: 'Estudo' },
     { id: 'ciclo', label: 'Ciclo de estudos', icon: 'cycle', group: 'Estudo' },
     { id: 'sessoes', label: 'Histórico de sessões', icon: 'history', group: 'Estudo' },

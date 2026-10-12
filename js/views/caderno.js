@@ -53,6 +53,10 @@
       h('footer', { class: 'error-actions' },
         e.status !== 'revisado' ? h('button', { class: 'btn sm', type: 'button', onclick: () => setStatus(e.id, 'revisado') }, ui.icon('check'), 'Marcar revisado') : null,
         e.status !== 'recorrente' ? h('button', { class: 'btn sm ghost', type: 'button', onclick: () => setStatus(e.id, 'recorrente') }, 'Marcar recorrente') : null,
+        h('button', { class: 'btn sm ghost', type: 'button', title: 'Pedir explicação e mnemônico ao tutor', onclick: () => {
+          window.OAB.tutorSeed = { text: window.OAB.lib.tutor.explainErrorText(e, store.subjectName(e.subjectId), store.topicLabel(e.topicId)), mode: 'tutor', autoSend: true, autoSpeak: false };
+          window.OAB.app.go('tutor');
+        } }, '✨ Explicar com o tutor'),
         h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Editar item', title: 'Editar', onclick: () => forms().errorEntry(e) }, ui.icon('edit')),
         h('button', { class: 'icon-btn danger', type: 'button', 'aria-label': 'Excluir item', title: 'Excluir', onclick: async () => {
           const ok = await ui.confirmDialog({ title: 'Excluir item?', message: 'O item e seu histórico de tentativas serão apagados.', confirmLabel: 'Excluir', danger: true });

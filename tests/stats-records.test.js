@@ -202,3 +202,24 @@ test('datas: semana começa na segunda e intervalos são inclusivos', () => {
   assert.equal(U.diffDays('2026-10-01', '2026-10-15'), 14);
   assert.equal(U.isISODate('2026-02-30'), false);
 });
+
+test('certeza: questão individual guarda o nível e alimenta a matriz de certeza', () => {
+  const erroCerteza = records.validateLog({ mode: 'individual', subjectId: 'sub-x', date: '2026-10-10', result: 'erro', certainty: 'certeza' });
+  assert.equal(erroCerteza.value.certainty, 'certeza');
+  assert.equal(erroCerteza.value.chute, false);
+  const acertoChute = records.validateLog({ mode: 'individual', subjectId: 'sub-x', date: '2026-10-10', result: 'acerto', certainty: 'chute' });
+  assert.equal(acertoChute.value.chute, true, 'acerto por chute vai para a revisão');
+  const logs = [
+    { mode: 'individual', certainty: 'certeza', correct: 0, wrong: 1, blank: 0, total: 1 },
+    { mode: 'individual', certainty: 'certeza', correct: 1, wrong: 0, blank: 0, total: 1 },
+    { mode: 'individual', certainty: 'chute', correct: 1, wrong: 0, blank: 0, total: 1 },
+    { mode: 'individual', certainty: 'duvida', correct: 0, wrong: 1, blank: 0, total: 1 },
+    { mode: 'bloco', certainty: null, correct: 5, wrong: 5, blank: 0, total: 10 },
+  ];
+  const m = stats.certaintyMatrix(logs);
+  assert.equal(m.cells.certeza.erro, 1);
+  assert.equal(m.cells.certeza.acerto, 1);
+  assert.equal(m.cells.chute.acerto, 1);
+  assert.equal(m.convictionWrong, 1);
+  assert.equal(m.total, 4, 'blocos não entram na matriz');
+});

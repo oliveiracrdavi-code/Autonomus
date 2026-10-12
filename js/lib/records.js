@@ -124,7 +124,8 @@
         notes: String(input.notes || '').trim(),
         sessionId: input.sessionId || null,
         ref: String(input.ref || '').trim(),
-        chute: !!input.chute,
+        chute: !!input.chute || (input.certainty && input.certainty !== 'certeza'),
+        certainty: individual ? (['certeza', 'duvida', 'chute'].includes(input.certainty) ? input.certainty : 'certeza') : null,
         wrongList,
         doubtList,
         motivo: String(input.motivo || '').trim(),
@@ -186,6 +187,7 @@
       notes: v.notes,
       sessionId: v.sessionId,
       simuladoId: null,
+      certainty: v.certainty || null,
       createdAt: now,
     };
   }

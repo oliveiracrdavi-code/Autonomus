@@ -22,6 +22,21 @@
   }
 
   /**
+   * Piso diário sugerido: metade do ritmo médio dos dias com estudo nas últimas 2 semanas, arredondado para 15 min.
+   * Serve para manter a constância nos dias ruins. Sem dados suficientes, devolve null.
+   */
+  function suggestedFloor(activity, today) {
+    const days = [];
+    for (let i = 0; i < 14; i++) {
+      const d = activity.get(U.addDays(today, -i));
+      if (d && d.minutes > 0) days.push(d.minutes);
+    }
+    if (days.length < 3) return null;
+    const avg = days.reduce((a, b) => a + b, 0) / days.length;
+    return Math.max(15, Math.round((avg / 2) / 15) * 15);
+  }
+
+  /**
    * Previsão de conclusão com base nas sessões concluídas das últimas 4 semanas.
    * Projeta o ritmo atual; não cobra nada de dias perdidos.
    */
@@ -49,5 +64,5 @@
     };
   }
 
-  return { DEFAULT_GOAL, WINDOW_DAYS, dailyProgress, cycleForecast };
+  return { DEFAULT_GOAL, WINDOW_DAYS, dailyProgress, cycleForecast, suggestedFloor };
 });

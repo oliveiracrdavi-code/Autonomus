@@ -90,7 +90,12 @@
         ui.stat('Revisados', U.fmtInt(sum.revised), 'Refeitos com acerto', 'ok'),
         ui.stat('Recorrentes', U.fmtInt(sum.recurring), 'Erraram de novo', sum.recurring ? 'bad' : ''),
         ui.stat('Dias com registro', `${sum.daysWithLogs} de ${sum.periodDays}`, 'Só dias em que houve questões')),
-      h('div', { class: 'toolbar' }, pendingToggle),
+      h('div', { class: 'toolbar' }, pendingToggle, items.length ? h('button', { class: 'btn', type: 'button', onclick: () => {
+        const label = `${U.fmtDate(range.from)} a ${U.fmtDate(range.to)}`;
+        const rows = items.map((e) => ({ subjectName: store.subjectName(e.subjectId), topicName: store.topicLabel(e.topicId) || e.subtopic, rule: e.rule, reason: e.reason, status: e.status }));
+        window.OAB.tutorSeed = { text: window.OAB.lib.tutor.weeklyScriptText(rows, label), mode: 'resumo', autoSend: true, autoSpeak: true };
+        window.OAB.app.go('tutor');
+      } }, '🎧 Ouvir resumo da semana') : null),
       list);
   }
 
