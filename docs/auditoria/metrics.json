@@ -1,0 +1,60 @@
+{
+  "desktop": {
+    "metrics": {
+      "spacingValues": 696,
+      "spacingMultiple8Pct": 93.2,
+      "spacingMultiple4Pct": 4,
+      "spacingOffGridCount": 19,
+      "fontFamilies": [
+        "Inter"
+      ],
+      "h1LetterSpacing": "-3.36px",
+      "h1FontSize": "84px",
+      "h1Words": 5,
+      "bodyBackground": "rgb(5, 6, 7)",
+      "bodyColor": "rgb(245, 245, 247)",
+      "cardRadii": [
+        "20px",
+        "16px"
+      ],
+      "primaryButtonsVisible": 2,
+      "primaryInFirstViewport": 1,
+      "saturatedColorsDetected": 6,
+      "touchTargetsUnder44": 17,
+      "touchTargetsSample": [
+        "a.nav-link 38px",
+        "a.nav-link 38px",
+        "a.nav-link 38px",
+        "a.nav-link 38px",
+        "a.nav-link 38px",
+        "a.nav-link 38px"
+      ],
+      "containerMaxWidth": "1280px",
+      "horizontalOverflow": 0
+    }
+  },
+  "mobile": {
+    "spacingValues": 696,
+    "spacingMultiple8Pct": 93.2,
+    "spacingMultiple4Pct": 4,
+    "spacingOffGridCount": 19,
+    "fontFamilies": [
+      "Inter"
+    ],
+    "h1LetterSpacing": "-1.76px",
+    "h1FontSize": "44px",
+    "h1Words": 5,
+    "bodyBackground": "rgb(5, 6, 7)",
+    "bodyColor": "rgb(245, 245, 247)",
+    "cardRadii": [
+      "16px"
+    ],
+    "primaryButtonsVisible": 2,
+    "primaryInFirstViewport": 0,
+    "saturatedColorsDetected": 6,
+    "touchTargetsUnder44": 0,
+    "touchTargetsSample": [],
+    "containerMaxWidth": "1280px",
+    "horizontalOverflow": 0
+  }
+}

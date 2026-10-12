@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Plataforma de estudos para a 1ª fase da OAB: ciclo de estudos, registro de questões, caderno de erros, revisão semanal, materiais em PDF e simulados.">
+  <meta name="theme-color" content="#050607">
+  <title>OAB Estudos · Plataforma de estudo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <a class="skip-link" href="#view">Pular para o conteúdo</a>
+  <div class="ambient" aria-hidden="true"></div>
+  <div class="scrim" id="scrim"></div>
+
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navegação principal">
+      <a class="brand" href="#/inicio">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5l8 6 8-6v14"/></svg>
+        </span>
+        <span class="brand-text"><strong>OAB Estudos</strong><small>1ª fase · plataforma</small></span>
+      </a>
+      <nav id="nav" class="nav" aria-label="Seções"></nav>
+      <div class="side-foot">
+        <button class="palette-trigger" type="button" id="palette-open">
+          <span>Buscar ou ir para…</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+        <p class="tiny muted">Dados salvos neste navegador</p>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="icon-btn menu-toggle" id="menu-toggle" type="button" aria-label="Abrir menu">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <h2 class="page-title" id="page-title"></h2>
+        <div id="status-chip"></div>
+      </header>
+      <main id="view" class="view" tabindex="-1"></main>
+    </div>
+  </div>
+
+  <div id="modal-root"></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <script src="js/lib/util.js"></script>
+  <script src="js/lib/cycle.js"></script>
+  <script src="js/lib/session.js"></script>
+  <script src="js/lib/stats.js"></script>
+  <script src="js/lib/records.js"></script>
+  <script src="js/lib/review.js"></script>
+  <script src="js/lib/analytics.js"></script>
+  <script src="js/lib/planner.js"></script>
+  <script src="js/lib/flashcards.js"></script>
+  <script src="js/lib/exporter.js"></script>
+  <script src="js/lib/prova.js"></script>
+  <script src="js/lib/seed.js"></script>
+  <script src="js/lib/store.js"></script>
+  <script src="js/ui/dom.js"></script>
+  <script src="js/ui/charts.js"></script>
+  <script src="js/views/dashboard.js"></script>
+  <script src="js/views/sessao.js"></script>
+  <script src="js/views/ciclo.js"></script>
+  <script src="js/views/historico.js"></script>
+  <script src="js/views/questoes.js"></script>
+  <script src="js/views/caderno.js"></script>
+  <script src="js/views/revisao.js"></script>
+  <script src="js/views/materiais.js"></script>
+  <script src="js/views/materias.js"></script>
+  <script src="js/views/simulados.js"></script>
+  <script src="js/views/flashcards.js"></script>
+  <script src="js/views/prova.js"></script>
+  <script src="js/views/relatorio.js"></script>
+  <script src="js/views/config.js"></script>
+  <script src="js/views/forms.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
