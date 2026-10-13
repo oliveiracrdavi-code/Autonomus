@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auditoria de design · OAB Estudos vs referências</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+:root { --bg:#050607; --surface:#111317; --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.16); --text:#F5F5F7; --muted:#B4B8C2; --accent:#4ADE80; --warn:#FBBF24; --bad:#F87171; --blue:#3B5BFF; --r:16px; }
+* { box-sizing: border-box; }
+html, body { margin:0; background:var(--bg); color:var(--text); font: 400 15px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased; }
+body { background: radial-gradient(900px 500px at 10% -10%, rgba(74,222,128,.10), transparent 60%), radial-gradient(800px 500px at 95% -5%, rgba(59,91,255,.12), transparent 60%), var(--bg); min-height:100vh; overflow-x:hidden; }
+.wrap { max-width: 1280px; margin: 0 auto; padding: 48px 32px 96px; }
+.muted { color: var(--muted); }
+h1 { font-size: clamp(40px, 5.6vw, 72px); line-height: 1; letter-spacing: -0.04em; font-weight: 850; margin: 8px 0 16px; background: linear-gradient(180deg,#fff 35%,#8B93A7 115%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+h2 { font-size: 28px; letter-spacing: -0.03em; margin: 64px 0 8px; }
+h3 { font-size: 18px; letter-spacing: -0.01em; margin: 0 0 4px; }
+.eyebrow { font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color: var(--accent); }
+.lead { font-size: 17px; color: var(--muted); max-width: 760px; }
+.score { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:16px; margin-top:32px; }
+.score div { background: linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.01)), var(--surface); border:1px solid var(--line); border-radius: var(--r); padding:20px; }
+.score strong { display:block; font-size: 34px; letter-spacing:-0.03em; font-variant-numeric: tabular-nums; }
+.score span { color: var(--muted); font-size: 13px; }
+.cmp { margin: 40px 0; background: linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.01)), var(--surface); border:1px solid var(--line); border-radius: 20px; padding: 28px; }
+.cmp header p { margin: 6px 0 0; }
+.pair { display:grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px; align-items: start; }
+figure { margin:0; min-width:0; }
+.frame { border-radius: 14px; overflow:hidden; border:1px solid var(--line-2); background:#0B0C0F; max-height: 560px; }
+.frame img { display:block; width:100%; height:auto; }
+figcaption { margin-top: 12px; font-size: 13px; color: var(--muted); }
+.tag { display:inline-block; font-size: 11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; padding: 4px 10px; border-radius: 999px; margin-right: 6px; }
+.tag.ref { background: rgba(255,255,255,.08); color: var(--text); }
+.tag.app { background: rgba(74,222,128,.16); color: var(--accent); }
+table { width:100%; border-collapse: separate; border-spacing:0; margin-top: 16px; background: linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01)), var(--surface); border:1px solid var(--line); border-radius: 16px; overflow:hidden; font-size: 14px; }
+th, td { text-align:left; padding: 14px 16px; border-bottom:1px solid var(--line); vertical-align: top; }
+th { font-size: 11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color: #9095A0; background: rgba(255,255,255,.02); }
+tr:last-child td { border-bottom:0; }
+td.src { color: var(--muted); white-space: nowrap; }
+.verdict { display:inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.verdict.ok { background: rgba(74,222,128,.14); color: var(--accent); }
+.verdict.parcial { background: rgba(251,191,36,.13); color: var(--warn); }
+.verdict.nao { background: rgba(248,113,113,.14); color: #FCA5A5; }
+.verdict.na { background: rgba(148,163,184,.14); color: #CBD5E1; }
+.verdict.sup { background: rgba(59,91,255,.18); color: #9DB4FF; }
+.note { margin-top: 24px; padding: 18px 20px; border-radius: 14px; background: rgba(59,91,255,.10); border:1px solid rgba(59,91,255,.25); color: var(--muted); font-size: 14px; }
+.note strong { color: var(--text); }
+ul.gaps { color: var(--muted); padding-left: 20px; }
+ul.gaps li { margin: 8px 0; }
+@media (max-width: 900px) { .wrap { padding: 32px 16px 64px; } .pair { grid-template-columns: 1fr; } .score { grid-template-columns: repeat(2, minmax(0,1fr)); } td.src { white-space: normal; } table { display:block; overflow-x:auto; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <p class="eyebrow">Auditoria final · design</p>
+  <h1>OAB Estudos vs. as referências</h1>
+  <p class="lead">Comparação lado a lado entre o nosso painel e as fichas do PDF <em>Biblioteca de Referências — Sites, Landing Pages &amp; UI</em> (arquétipos Dark Fintech Glow, Display Condensado e Dashboard), além do site público do Tutory. As medidas vêm do navegador, em 1440×900 e 390×844, e não de estimativa visual.</p>
+
+  <div class="score">
+    <div><strong>14</strong><span>regras atendidas</span></div>
+    <div><strong>6</strong><span>atendidas em parte</span></div>
+    <div><strong>1</strong><span>não se aplicam</span></div>
+    <div><strong>0</strong><span>não atendidas</span></div>
+  </div>
+
+  <h2>1. Comparativos lado a lado</h2>
+  <p class="muted">Cada par mostra a referência à esquerda e o nosso app à direita. O que diferimos e por quê está em cada cartão.</p>
+  
+    <article class="cmp">
+      <header><h3>Hero em vidro e luz: dark fintech glow</h3><p class="muted">A referência usa um produto grande com glow atrás. Nosso hero tem três cards de vidro inclinados com números reais: próximo bloco, nível e cobertura.</p></header>
+      <div class="pair">
+        <figure><div class="frame"><img src="ref/pdf-p18.jpg" alt="PDF p.18 · arquétipo Dark Fintech Glow (glow radial, cards de vidro, fundo quase preto)" loading="lazy"></div><figcaption><span class="tag ref">Referência</span> PDF p.18 · arquétipo Dark Fintech Glow (glow radial, cards de vidro, fundo quase preto)</figcaption></figure>
+        <figure><div class="frame"><img src="app/desk-dashboard-hero.png" alt="Painel · hero com cards em perspectiva e dados reais" loading="lazy"></div><figcaption><span class="tag app">Nosso app</span> Painel · hero com cards em perspectiva e dados reais</figcaption></figure>
+      </div>
+    </article>
+    <article class="cmp">
+      <header><h3>Painel web: grade de cards e KPI → gráfico → tabela</h3><p class="muted">A referência organiza os dados em grade com saudação. Temos a mesma lógica, mas com mais blocos, e o painel é mais denso.</p></header>
+      <div class="pair">
+        <figure><div class="frame"><img src="ref/pdf-p69.jpg" alt="PDF p.69 · dashboard clínico, saudação, cards em grade" loading="lazy"></div><figcaption><span class="tag ref">Referência</span> PDF p.69 · dashboard clínico, saudação, cards em grade</figcaption></figure>
+        <figure><div class="frame"><img src="app/desk-dashboard-hero.png" alt="Painel · saudação, sequência, ritmo e nível" loading="lazy"></div><figcaption><span class="tag app">Nosso app</span> Painel · saudação, sequência, ritmo e nível</figcaption></figure>
+      </div>
+    </article>
+    <article class="cmp">
+      <header><h3>Display e tipografia de impacto</h3><p class="muted">O cronômetro usa tipografia grande com gradiente. Não adotamos a versão condensada de pôster, porque o app precisa ser lido por longos períodos.</p></header>
+      <div class="pair">
+        <figure><div class="frame"><img src="ref/pdf-p40.jpg" alt="PDF p.40 · display grande com tracking negativo" loading="lazy"></div><figcaption><span class="tag ref">Referência</span> PDF p.40 · display grande com tracking negativo</figcaption></figure>
+        <figure><div class="frame"><img src="app/desk-sessao-ativa.png" alt="Sessão de estudo · cronômetro em display grande" loading="lazy"></div><figcaption><span class="tag app">Nosso app</span> Sessão de estudo · cronômetro em display grande</figcaption></figure>
+      </div>
+    </article>
+    <article class="cmp">
+      <header><h3>Concorrente de referência: Tutory (home)</h3><p class="muted">A referência também usa fundo escuro, brilho azul e mockups em perspectiva. Nossa versão troca o mockup de mentor por dados de estudo do próprio aluno.</p></header>
+      <div class="pair">
+        <figure><div class="frame"><img src="ref/tutory-home.png" alt="tutory.com.br · home (captura de 1440 px, sem edição)" loading="lazy"></div><figcaption><span class="tag ref">Referência</span> tutory.com.br · home (captura de 1440 px, sem edição)</figcaption></figure>
+        <figure><div class="frame"><img src="app/desk-dashboard-hero.png" alt="Nosso painel · mesmo tratamento escuro e mockups em perspectiva" loading="lazy"></div><figcaption><span class="tag app">Nosso app</span> Nosso painel · mesmo tratamento escuro e mockups em perspectiva</figcaption></figure>
+      </div>
+    </article>
+    <article class="cmp">
+      <header><h3>Foco de estudo (modo cinema)</h3><p class="muted">Equivalente em desktop: sem menu, uma tarefa por tela, como nos mockups de tela cheia.</p></header>
+      <div class="pair">
+        <figure><div class="frame"><img src="ref/pdf-p54.jpg" alt="PDF p.54 · UI mobile em tela cheia" loading="lazy"></div><figcaption><span class="tag ref">Referência</span> PDF p.54 · UI mobile em tela cheia</figcaption></figure>
+        <figure><div class="frame"><img src="app/desk-sessao-foco.png" alt="Modo foco: navegação oculta, só o cronômetro e as fases" loading="lazy"></div><figcaption><span class="tag app">Nosso app</span> Modo foco: navegação oculta, só o cronômetro e as fases</figcaption></figure>
+      </div>
+    </article>
+    <article class="cmp">
+      <header><h3>Mobile</h3><p class="muted">Sem overflow horizontal, alvos de 44 px e margem de 16 px. A gaveta lateral substitui a barra de abas sugerida pelo PDF.</p></header>
+      <div class="pair">
+        <figure><div class="frame"><img src="ref/pdf-p54.jpg" alt="PDF p.54 · telas de app mobile" loading="lazy"></div><figcaption><span class="tag ref">Referência</span> PDF p.54 · telas de app mobile</figcaption></figure>
+        <figure><div class="frame"><img src="app/mob-inicio.png" alt="Painel no celular (390 px), cards em uma coluna" loading="lazy"></div><figcaption><span class="tag app">Nosso app</span> Painel no celular (390 px), cards em uma coluna</figcaption></figure>
+      </div>
+    </article>
+
+  <h2>2. Checklist do PDF com medições</h2>
+  <p class="muted">Regras da seção 10 (checklist) e das seções de dashboard e mobile. A coluna “Medição” vem do navegador.</p>
+  <table>
+    <thead><tr><th>Regra</th><th>Fonte no PDF</th><th>Medição</th><th>Veredito</th><th>Observação</th></tr></thead>
+    <tbody>
+<tr><td>H1 com até 9 palavras e promessa de resultado</td><td class='src'>Playbook §1 · checklist</td><td>5 palavras</td><td><span class='verdict ok'>Atende</span></td><td class='muted'>Título curto e objetivo no painel.</td></tr>
+<tr><td>Um único CTA primário visível em 1440×900</td><td class='src'>Playbook §1 · checklist</td><td>1 na primeira dobra</td><td><span class='verdict ok'>Atende</span></td><td class='muted'>O CTA secundário do hero é um botão ghost que leva ao card da próxima sessão.</td></tr>
+<tr><td>Prova social no primeiro viewport</td><td class='src'>Playbook §1 · checklist</td><td>não aplicável</td><td><span class='verdict na'>Não se aplica</span></td><td class='muted'>Ferramenta pessoal, sem depoimentos nem logos de clientes.</td></tr>
+<tr><td>O produto real aparece no hero</td><td class='src'>Playbook §1 · checklist</td><td>3 cards de vidro com dados reais</td><td><span class='verdict ok'>Atende</span></td><td class='muted'>Próximo bloco, nível/XP e cobertura do edital, todos calculados dos registros.</td></tr>
+<tr><td>Todos os espaçamentos são múltiplos de 8</td><td class='src'>Playbook §3 · grid 8 pt</td><td>93,2% múltiplos de 8; 19 valores de 4 px</td><td><span class='verdict parcial'>Parcial</span></td><td class='muted'>Antes eram 46%. Restam ajustes finos de 4 px (o PDF aceita 4 para ajustes).</td></tr>
+<tr><td>No máximo uma família tipográfica</td><td class='src'>Playbook §4</td><td>1 família(s): Inter</td><td><span class='verdict ok'>Atende</span></td><td class='muted'>Inter em todos os pesos.</td></tr>
+<tr><td>Tracking negativo em títulos grandes (−2% a −4%)</td><td class='src'>Playbook §4</td><td>títulos em −0,04em e −0,035em</td><td><span class='verdict ok'>Atende</span></td><td class='muted'>Antes estava em −0,05em, acima da faixa.</td></tr>
+<tr><td>Fundo escuro, mas não preto puro</td><td class='src'>Playbook §5</td><td>rgb(5, 6, 7)</td><td><span class='verdict ok'>Atende</span></td><td class='muted'>#050607 com brilhos radiais de acento.</td></tr>
+<tr><td>Contraste ≥ 4,5:1 em todo texto</td><td class='src'>Playbook §5 · WCAG</td><td>texto 17,1:1 · secundário 9,4:1 · terciário 6,2:1 · placeholder 5,8:1</td><td><span class='verdict ok'>Atende</span></td><td class='muted'>Placeholder foi clareado de 3,9:1 para 5,8:1.</td></tr>
+<tr><td>Um único acento de cor, usado só em CTA e dados</td><td class='src'>Playbook §5 · 60-30-10</td><td>6 cores saturadas detectadas</td><td><span class='verdict parcial'>Parcial</span></td><td class='muted'>Verde é o acento; azul e violeta aparecem em brilhos, barras e gradientes. Âmbar e vermelho são cores de estado (aviso e erro).</td></tr>
+<tr><td>Raio, sombra e borda iguais em todos os cards</td><td class='src'>Playbook §6 · checklist</td><td>raios: 20px, 16px</td><td><span class='verdict parcial'>Parcial</span></td><td class='muted'>Os raios estão na faixa de 16–20 px do PDF, mas há dois valores.</td></tr>
+<tr><td>Container entre 1200 e 1280 px</td><td class='src'>Playbook §3</td><td>1280px</td><td><span class='verdict ok'>Atende</span></td><td class='muted'>Largura máxima do conteúdo.</td></tr>
+<tr><td>Sem overflow horizontal em desktop e celular</td><td class='src'>Playbook §7</td><td>0 px (desktop) · 0 px (celular)</td><td><span class='verdict ok'>Atende</span></td><td class='muted'>Corrigido: a faixa animada e os cards 3D eram recortados só visualmente.</td></tr>
+<tr><td>Alvos de toque de 44 px no celular</td><td class='src'>Playbook §7</td><td>0 abaixo de 44 px no celular</td><td><span class='verdict ok'>Atende</span></td><td class='muted'>No desktop ainda há 17 alvos de 36–42 px (itens da navegação e botões de ícone).</td></tr>
+<tr><td>Margem lateral de 16 px no celular</td><td class='src'>Playbook §7</td><td>16 px</td><td><span class='verdict ok'>Atende</span></td><td class='muted'></td></tr>
+<tr><td>Ícones de uma só biblioteca</td><td class='src'>Playbook §9 (anti-padrão)</td><td>1 conjunto SVG</td><td><span class='verdict ok'>Atende</span></td><td class='muted'></td></tr>
+<tr><td>Dados do mockup realistas e coerentes</td><td class='src'>Playbook §10</td><td>dados reais do usuário, sem lorem ipsum</td><td><span class='verdict ok'>Atende</span></td><td class='muted'>Quando não há dados, a tela explica o que falta, em vez de inventar números.</td></tr>
+<tr><td>Dashboard: 3 a 4 KPIs na linha principal</td><td class='src'>Dashboard §8</td><td>6 KPIs</td><td><span class='verdict parcial'>Parcial</span></td><td class='muted'>Foram mantidos 6 indicadores porque cobrem horas, questões, aproveitamento, erros, sequência e ciclos.</td></tr>
+<tr><td>Dashboard: gráfico principal ocupando 2/3 da largura</td><td class='src'>Dashboard §8</td><td>desempenho ocupa a largura toda</td><td><span class='verdict parcial'>Parcial</span></td><td class='muted'>Layout em grade de gráficos, sem gráfico 2/3 dominante.</td></tr>
+<tr><td>Dashboard: no máximo 2 cores de dado + neutros</td><td class='src'>Dashboard §8</td><td>verde, âmbar, vermelho e azul nos gráficos</td><td><span class='verdict parcial'>Parcial</span></td><td class='muted'>As cores de estado são semânticas. O azul fica restrito às horas.</td></tr>
+<tr><td>Mobile: layout desenhado, não encolhido</td><td class='src'>Playbook §7</td><td>cards em 1 coluna, KPIs em 2 colunas, menu em gaveta</td><td><span class='verdict ok'>Atende</span></td><td class='muted'>O PDF sugere barra inferior de abas. Usamos gaveta lateral, o que é uma escolha consciente.</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>Como medimos.</strong> Grade de 8 px: todos os valores computados de padding, margin e gap do painel (696 valores). Contraste: fórmula WCAG sobre as cores de texto e de superfície. Alvos de toque: elementos interativos visíveis com altura abaixo de 44 px. Overflow: diferença entre a largura de rolagem e a da janela. Cores saturadas: cores de texto, fundo e borda com saturação acima do limiar.</div>
+
+  <h2>3. Comparativo de funções com o Tutory</h2>
+  <p class="muted">O Tutory público é uma plataforma para mentores e educadores. As funções do aluno aparecem só em telas ilustrativas, então a comparação usa o que está descrito nas páginas de produto (mentoria, hub e academy).</p>
+  <table>
+    <thead><tr><th>Função do Tutory</th><th>Situação no nosso app</th><th>Como fica no nosso app</th></tr></thead>
+    <tbody>
+<tr><td>Cronograma individualizado a partir das horas e do edital</td><td><span class='verdict parcial'>Diferente por requisito</span></td><td class='muted'>Ciclo editável de 30 blocos, sem datas fixas. Você decide a ordem, a quantidade e a matéria de cada bloco, e a previsão mostra quando a volta termina no seu ritmo.</td></tr>
+<tr><td>Metas diárias personalizadas</td><td><span class='verdict ok'>Atendido</span></td><td class='muted'>Minutos, questões e revisões por dia, editáveis em Configurações, com progresso no painel.</td></tr>
+<tr><td>Cobertura do edital</td><td><span class='verdict ok'>Atendido</span></td><td class='muted'>Percentual de assuntos estudados por disciplina e no total, com atalho para cadastrar assuntos.</td></tr>
+<tr><td>Trilha de aprendizado (learning path)</td><td><span class='verdict ok'>Atendido</span></td><td class='muted'>Trilha com os próximos 12 blocos do ciclo, sendo o primeiro o da próxima sessão.</td></tr>
+<tr><td>XP, níveis e conquistas</td><td><span class='verdict ok'>Atendido com transparência</span></td><td class='muted'>Regras de XP visíveis (10 min = 1 XP, questão = 1 XP, sessão = 20 XP, revisão = 3 XP) e 10 conquistas calculadas dos dados reais.</td></tr>
+<tr><td>Ranking entre alunos</td><td><span class='verdict na'>Não aplicável</span></td><td class='muted'>Uso individual. Em vez de ranking, há melhores e piores disciplinas com amostra mínima.</td></tr>
+<tr><td>Sequência de estudos</td><td><span class='verdict ok'>Atendido, sem cobrança</span></td><td class='muted'>Mapa de calor de 16 semanas. Um dia sem estudo só zera a contagem, sem gerar pendência.</td></tr>
+<tr><td>Relatórios exportáveis em PDF</td><td><span class='verdict ok'>Atendido</span></td><td class='muted'>Relatório limpo para imprimir ou salvar em PDF, e exportação em CSV compatível com o Excel.</td></tr>
+<tr><td>Simulados com questões numeradas</td><td><span class='verdict sup'>Superado</span></td><td class='muted'>Modo prova cronometrado com gabarito C/E/B, atalhos de teclado, colagem de gabarito e salvamento automático do rascunho.</td></tr>
+<tr><td>Materiais e aulas centralizados</td><td><span class='verdict parcial'>Atendido com ressalvas</span></td><td class='muted'>PDFs ficam guardados no navegador, abrem dentro do app e registram a página em que você parou. Não há streaming de aulas.</td></tr>
+<tr><td>Comunicação com o mentor</td><td><span class='verdict na'>Não aplicável</span></td><td class='muted'>Uso individual. As dúvidas ficam no caderno de erros e nas anotações das sessões.</td></tr>
+<tr><td>Gestão de alunos, financeiro, checkout e redações</td><td><span class='verdict na'>Não aplicável</span></td><td class='muted'>Ferramentas para o mentor vender e gerenciar turmas. Não fazem parte de uma plataforma de estudo pessoal.</td></tr>
+<tr><td>Banco de questões com milhões de itens</td><td><span class='verdict na'>Não aplicável</span></td><td class='muted'>Não copiamos conteúdo de terceiros. Você registra as questões que resolve e revisa com as suas próprias anotações.</td></tr>
+<tr><td>IA (assistente Maia, resumos e mapas mentais automáticos)</td><td><span class='verdict nao'>Pendente</span></td><td class='muted'>Não há IA no app. Um assistente real exige um servidor com chave de API. Só existe uma base local, sem resumos gerados automaticamente.</td></tr>
+<tr><td>Flashcards com repetição espaçada</td><td><span class='verdict sup'>Superado</span></td><td class='muted'>Cada regra do caderno vira cartão no método de caixas (1, 2, 4, 7 e 15 dias). Acertar afasta a revisão; errar volta para amanhã.</td></tr>
+<tr><td>Foco sugerido e previsão de acertos</td><td><span class='verdict sup'>Superado</span></td><td class='muted'>Sugestão de prioridade que combina peso, desempenho e presença no ciclo, sem mexer no ciclo. Previsão linear sobre 3 ou mais simulados.</td></tr>
+<tr><td>Busca global</td><td><span class='verdict sup'>Superado</span></td><td class='muted'>Ctrl+K procura comandos, disciplinas, assuntos, materiais, itens do caderno e registros de questões.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>4. O que ainda não está resolvido</h2>
+  <ul class="gaps">
+    <li><strong>IA de verdade.</strong> Assistente que responde dúvidas e gera resumos exige um servidor e uma chave de API. Sem isso, não existe IA no app, e nada é simulado.</li>
+    <li><strong>Sincronização entre dispositivos.</strong> Os dados ficam no navegador. Use o backup em Configurações para levar os dados para outro aparelho. Os PDFs precisam ser importados de novo.</li>
+    <li><strong>Busca dentro dos PDFs.</strong> O texto dos PDFs não é extraído. A busca encontra o título, a descrição e as anotações do material.</li>
+    <li><strong>Cores de acento.</strong> Ainda há mais de um acento saturado (verde, azul e violeta nos brilhos). Uma versão mais contida reduziria isso.</li>
+    <li><strong>Pesos das matérias.</strong> Os pesos do relatório somam 103%. O app mostra o aviso e aceita a edição, sem corrigir os valores por conta própria.</li>
+    <li><strong>Data do diagnóstico.</strong> A OAB 47 está com data provisória (12/10/2026). Ajuste-a em Simulados para a data real.</li>
+  </ul>
+</main>
+</body>
+</html>

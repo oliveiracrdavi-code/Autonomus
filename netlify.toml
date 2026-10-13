@@ -1,0 +1,13 @@
+# Tudo passa pela função (inclusive a página), para que a senha OAB_BASIC_AUTH proteja o site inteiro.
+[build]
+  publish = "public"
+
+[functions]
+  directory = "netlify/functions"
+  included_files = ["index.html", "css/**", "js/**", "docs/**", "server/**"]
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/server"
+  status = 200
+  force = true
