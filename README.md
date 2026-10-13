@@ -20,6 +20,16 @@ npm start                        # http://127.0.0.1:8080
 - O servidor escuta só em `127.0.0.1` por padrão. Outro endereço em `HOST` só sobe com `OAB_ALLOW_REMOTE=1`, e aí fica acessível pela rede **sem autenticação**: use só em rede de confiança.
 - Proteções locais: com `HOST` de loopback, o servidor recusa cabeçalhos `Host` que não sejam o endereço local (evita que outro site use o servidor por DNS rebinding) e só aceita corpos de API em JSON ou PCM, que um formulário de outro site não consegue enviar. Qualquer texto de erro passa por uma remoção de chaves antes de sair.
 
+## Hospedagem (Vercel, plano gratuito)
+
+O projeto roda como uma função serverless em `api/index.js`, e `vercel.json` inclui os arquivos do site. Para publicar:
+
+1. Crie o projeto na Vercel a partir do repositório (a pasta raiz é este projeto, sem comando de build).
+2. Em **Settings → Environment Variables**, adicione `NVIDIA_API_KEYS` (as chaves, separadas por vírgula) e `OAB_BASIC_AUTH` com `usuario:senha`. Marque as duas como **Sensitive**.
+3. Faça o deploy. Sem `OAB_BASIC_AUTH`, o site fica aberto e quem o acessar usa a sua cota da NVIDIA: não publique sem a senha.
+
+O navegador pede usuário e senha uma vez. A VERCEL define `VERCEL=1` sozinha, e nesse caso a checagem de `Host` é trocada pela senha.
+
 ## Chaves e privacidade
 
 - As chaves ficam **só no servidor**, em variáveis de ambiente. O navegador nunca as recebe, e as respostas da API não as incluem.
@@ -32,9 +42,9 @@ npm start                        # http://127.0.0.1:8080
 
 | Uso | Modelo | Situação |
 |---|---|---|
-| Tutor (padrão) | `nvidia/nemotron-3-ultra-550b-a55b` | respondeu em ~3 s, resposta correta em português |
+| Tutor (padrão) | `moonshotai/kimi-k3` | respondeu em 11 a 15 s com cada uma das 3 chaves; resposta correta em português |
+| Tutor | `nvidia/nemotron-3-ultra-550b-a55b` | respondeu em ~3 s, resposta correta em português |
 | Tutor | `nvidia/nemotron-3-super-120b-a12b` | respondeu em ~5 s |
-| Tutor | `moonshotai/kimi-k3` | respondeu em ~24 s |
 | Tutor | `deepseek-ai/deepseek-v4.1-flash` | **sem resposta** nos testes desta conta (timeout); fica na lista, mas pode estar indisponível |
 | Voz (síntese) | Magpie Multilingual, vozes `PT-BR.Isabela`, `PT-BR.Louise`, `PT-BR.Diego` | áudio em português, validado por ida e volta |
 | Voz (transcrição) | Parakeet TDT 0.6B multilíngue (25 idiomas, inclui português) | transcrição validada: o texto sintetizado voltou quase idêntico |

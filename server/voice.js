@@ -108,19 +108,24 @@ async function synthesizeRobust(client, text, voice, md, timeoutMs) {
     const res = await synthesizeChunk(client, t, voice, md, timeoutMs);
     return Buffer.from(res.audio);
   };
+  // erro ligado à chave (cota, permissão, indisponível) sobe para a rotação de chaves; os demais são do trecho
+  const chunkError = (e) => !KEY_RETRY_CODES.has(e.code);
   try {
     return { pcm: [await attempt(text)] };
   } catch (err) {
-    if (err.code !== 13 && err.code !== 3) throw err; // erro de rede/autenticação: não tenta de novo aqui
+    if (!chunkError(err)) throw err;
+    // falhas do modelo costumam ser pontuais: tenta o mesmo trecho mais uma vez
+    await new Promise((r) => setTimeout(r, 400));
+    try { return { pcm: [await attempt(text)] }; } catch (e0) { if (!chunkError(e0)) throw e0; }
     const clean = normalizeForVoice(text);
     if (clean && clean !== text) {
-      try { return { pcm: [await attempt(clean)] }; } catch (e2) { /* segue para as metades */ }
+      try { return { pcm: [await attempt(clean)] }; } catch (e2) { if (!chunkError(e2)) throw e2; }
     }
     const parts = splitInTwo(clean || text);
     if (!parts) return { skipped: err.message.slice(0, 80) };
     const out = [];
     for (const part of parts) {
-      try { out.push(await attempt(part)); } catch (e3) { if (e3.code !== 13 && e3.code !== 3) throw e3; }
+      try { out.push(await attempt(part)); } catch (e3) { if (!chunkError(e3)) throw e3; }
     }
     return out.length ? { pcm: out } : { skipped: err.message.slice(0, 80) };
   }
@@ -183,4 +188,4 @@ async function transcribe({ keys, pcm, language = 'multi', timeoutMs = 120000 })
   throw Object.assign(new Error(`Nenhuma chave conseguiu transcrever (${lastErr ? lastErr.message.slice(0, 120) : ''})`), { status: 502 });
 }
 
-module.exports = { status, synthesize, transcribe, normalizeForVoice, splitInTwo, VOICES, VOICE_IDS, TTS_RATE, ASR_RATE };
+module.exports = { status, synthesize, transcribe, synthesizeRobust, normalizeForVoice, splitInTwo, VOICES, VOICE_IDS, TTS_RATE, ASR_RATE };

@@ -116,6 +116,17 @@ test('voz: normaliza texto para o modelo sem perder o conteúdo falado', () => {
   assert.ok(!/[→*#_]/.test(out));
 });
 
+test('voz: erro pontual do modelo num trecho é tentado de novo, e erro de cota vai para a rotação de chaves', async () => {
+  const v = require('../server/voice');
+  let calls = 0;
+  const flaky = { Synthesize: (req, md, opts, cb) => { calls += 1; if (calls === 1) return cb(Object.assign(new Error('Triton'), { code: 2 })); cb(null, { audio: Buffer.alloc(4) }); } };
+  const r = await v.synthesizeRobust(flaky, 'um trecho qualquer para sintetizar', 'voz', {}, 1000);
+  assert.equal(r.pcm.length, 1);
+  assert.equal(calls, 2);
+  const quota = { Synthesize: (req, md, opts, cb) => cb(Object.assign(new Error('cota'), { code: 8 })) };
+  await assert.rejects(() => v.synthesizeRobust(quota, 'texto', 'voz', {}, 1000), (e) => e.code === 8);
+});
+
 test('voz: divisão de trecho acontece perto do meio e em espaço', () => {
   const v = require('../server/voice');
   const parts = v.splitInTwo('uma frase com varias palavras para dividir ao meio aqui');

@@ -264,7 +264,7 @@
     const chatCard = ui.card(null, h('div', { class: 'chat-wrap' }, list, composerBox), { cls: 'chat-card' });
     const side = ui.card('Configurações do tutor', h('div', { class: 'stack' },
       h('div', null, h('p', { class: 'eyebrow' }, 'Modo'), modeTabs()),
-      h('div', null, h('p', { class: 'eyebrow' }, 'Modelo'), modelSel, h('p', { class: 'tiny muted' }, 'O padrão é o Nemotron 3 Ultra, o mais rápido e preciso nos testes.')),
+      h('div', null, h('p', { class: 'eyebrow' }, 'Modelo'), modelSel, h('p', { class: 'tiny muted' }, 'O padrão é o Kimi K3, que responde em cerca de 10 a 15 s. O Nemotron 3 Ultra responde em segundos.')),
       h('div', null, h('p', { class: 'eyebrow' }, 'Voz'), voiceSel, h('p', { class: 'tiny muted' }, 'Vozes Magpie em português do Brasil, da NVIDIA.')),
       dataToggle, autoToggle,
       h('button', { class: 'btn ghost', type: 'button', onclick: () => { conv.messages = []; conv.attachments = []; save(); update(); } }, 'Novo chat'),

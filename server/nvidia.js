@@ -7,9 +7,9 @@ const BASE = process.env.NVIDIA_BASE_URL || 'https://integrate.api.nvidia.com/v1
 
 // Modelos de chat escolhidos e testados nesta conta. O primeiro é o padrão.
 const CHAT_MODELS = [
-  { id: 'nvidia/nemotron-3-ultra-550b-a55b', label: 'Nemotron 3 Ultra (550B) · recomendado', recommended: true },
-  { id: 'nvidia/nemotron-3-super-120b-a12b', label: 'Nemotron 3 Super (120B) · rápido' },
-  { id: 'moonshotai/kimi-k3', label: 'Kimi K3' },
+  { id: 'moonshotai/kimi-k3', label: 'Kimi K3 · padrão, mais preciso', recommended: true },
+  { id: 'nvidia/nemotron-3-ultra-550b-a55b', label: 'Nemotron 3 Ultra (550B) · rápido' },
+  { id: 'nvidia/nemotron-3-super-120b-a12b', label: 'Nemotron 3 Super (120B)' },
   { id: 'deepseek-ai/deepseek-v4.1-flash', label: 'DeepSeek V4.1 Flash (pode estar indisponível)' },
   { id: 'z-ai/glm-5.3', label: 'GLM 5.3' },
 ];
@@ -41,7 +41,7 @@ function sanitizeMessages(messages) {
  * Chama o modelo. `fetchImpl` e `base` são injetáveis para teste.
  * Retorna { reply, model, usage, keyUsed }. Nunca inclui a chave na resposta.
  */
-async function chat({ keys, model, messages, temperature = 0.3, maxTokens = 900, fetchImpl = fetch, base = BASE, budgetMs = 70000, perKeyMs = 35000 }) {
+async function chat({ keys, model, messages, temperature = 0.3, maxTokens = 900, fetchImpl = fetch, base = BASE, budgetMs = 150000, perKeyMs = 60000 }) {
   const deadline = Date.now() + budgetMs; // tempo total da tentativa, somando todas as chaves
   if (!keys || keys.length === 0) throw new ChatError('Chave da NVIDIA não configurada no servidor.', 503);
   const useModel = ALLOWED.has(model) ? model : CHAT_MODELS[0].id;

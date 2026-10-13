@@ -4,6 +4,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const ROOT = path.resolve(__dirname, '..');
 // Carrega o .env antes dos demais módulos: eles leem o ambiente (URLs, IDs de função) ao carregar.
@@ -25,8 +26,20 @@ const SECURITY = { 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-r
 const LOOPBACK = new Set(['127.0.0.1', 'localhost', '::1']);
 const IS_LOOPBACK = LOOPBACK.has(HOST);
 const LOCAL_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]']);
+// Hospedado (ex.: Vercel): o Host é o domínio público, e a proteção passa a ser a senha de acesso.
+const ON_PLATFORM = !!process.env.VERCEL;
+const BASIC_AUTH = process.env.OAB_BASIC_AUTH || ''; // "usuario:senha"; se definido, protege todo o site
 // Corpos de API só com tipos que exigem pré-verificação CORS: um formulário de outro site não consegue enviá-los.
 const API_BODY_TYPES = new Set(['application/json', 'application/octet-stream']);
+
+/** Confere a senha de acesso (HTTP Basic) em tempo constante. Sem senha configurada, libera tudo. */
+function authorized(req, expected = BASIC_AUTH) {
+  if (!expected) return true;
+  const header = String(req.headers.authorization || '');
+  const given = header.startsWith('Basic ') ? Buffer.from(header.slice(6), 'base64') : Buffer.alloc(0);
+  const want = Buffer.from(expected);
+  return given.length === want.length && crypto.timingSafeEqual(given, want);
+}
 
 function send(res, status, body, headers = {}) {
   res.writeHead(status, { ...SECURITY, ...headers });
@@ -106,7 +119,8 @@ const server = http.createServer(async (req, res) => {
   const url = req.url || '/';
   try {
     const hostName = String(req.headers.host || '').replace(/:\d+$/, '');
-    if (IS_LOOPBACK && !LOCAL_HOSTS.has(hostName)) return sendJson(res, 403, { error: 'Acesso permitido apenas pelo endereço local do servidor.' });
+    if (!authorized(req)) return send(res, 401, 'Acesso restrito.', { 'Content-Type': 'text/plain; charset=utf-8', 'WWW-Authenticate': 'Basic realm="OAB Estudos", charset="UTF-8"' });
+    if (IS_LOOPBACK && !ON_PLATFORM && !LOCAL_HOSTS.has(hostName)) return sendJson(res, 403, { error: 'Acesso permitido apenas pelo endereço local do servidor.' });
     if (url.startsWith('/api/')) return await handleApi(req, res, url.split('?')[0]);
     if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Método não permitido');
     if (url === '/favicon.ico') return send(res, 204, '');
@@ -135,4 +149,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { server, staticFile };
+module.exports = { server, staticFile, authorized };
