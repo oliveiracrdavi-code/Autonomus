@@ -95,7 +95,7 @@
         const rows = items.map((e) => ({ subjectName: store.subjectName(e.subjectId), topicName: store.topicLabel(e.topicId) || e.subtopic, rule: e.rule, reason: e.reason, status: e.status }));
         window.OAB.tutorSeed = { text: window.OAB.lib.tutor.weeklyScriptText(rows, label), mode: 'resumo', autoSend: true, autoSpeak: true };
         window.OAB.app.go('tutor');
-      } }, '🎧 Ouvir resumo da semana') : null),
+      } }, '📝 Resumo da semana com o tutor') : null),
       list);
   }
 

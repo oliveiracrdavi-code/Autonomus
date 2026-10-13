@@ -6,21 +6,24 @@
   const U = window.OAB.lib.util;
 
   const ROUTES = [
-    { id: 'inicio', label: 'Início', icon: 'home', group: 'Estudo' },
-    { id: 'tutor', label: 'Tutor de estudo', icon: 'chat', group: 'Inteligência' },
-    { id: 'sessao', label: 'Sessão de estudo', icon: 'timer', group: 'Estudo' },
-    { id: 'ciclo', label: 'Ciclo de estudos', icon: 'cycle', group: 'Estudo' },
-    { id: 'sessoes', label: 'Histórico de sessões', icon: 'history', group: 'Estudo' },
+    { id: 'hoje', label: 'Hoje', icon: 'home', group: 'Estudo' },
+    { id: 'semana', label: 'Calendário semanal', icon: 'grid', group: 'Estudo' },
     { id: 'questoes', label: 'Questões', icon: 'list', group: 'Questões' },
     { id: 'caderno', label: 'Caderno de erros', icon: 'book', group: 'Questões', badge: () => store.openErrorsCount() || null },
-    { id: 'revisao', label: 'Revisão semanal', icon: 'refresh', group: 'Questões' },
-    { id: 'flashcards', label: 'Flashcards', icon: 'cards', group: 'Questões', badge: () => { const st = store.getState(); const f = window.OAB.lib.flashcards; const n = f.summary(st.errors, st.cards, U.todayISO()).due; return n || null; } },
-    { id: 'materiais', label: 'Materiais (PDF)', icon: 'file', group: 'Conteúdo' },
     { id: 'materias', label: 'Matérias e assuntos', icon: 'grid', group: 'Conteúdo' },
-    { id: 'simulados', label: 'Simulados e metas', icon: 'target', group: 'Desempenho' },
-    { id: 'prova', label: 'Modo prova', icon: 'timer', group: 'Desempenho', badge: () => (store.getState().draft ? '•' : null) },
-    { id: 'relatorio', label: 'Relatório e exportação', icon: 'file', group: 'Desempenho' },
+    { id: 'tutor', label: 'Tutor de estudo', icon: 'chat', group: 'Inteligência' },
     { id: 'config', label: 'Configurações', icon: 'gear', group: 'Sistema' },
+    // Fora do menu para enxugar o app: continuam acessíveis pelo endereço, mas não aparecem na navegação.
+    { id: 'inicio', label: 'Painel completo', icon: 'home', group: 'Estudo', hidden: true },
+    { id: 'sessao', label: 'Sessão de estudo', icon: 'timer', group: 'Estudo', hidden: true },
+    { id: 'ciclo', label: 'Ciclo de estudos', icon: 'cycle', group: 'Estudo', hidden: true },
+    { id: 'sessoes', label: 'Histórico de sessões', icon: 'history', group: 'Estudo', hidden: true },
+    { id: 'revisao', label: 'Revisão semanal', icon: 'refresh', group: 'Questões', hidden: true },
+    { id: 'flashcards', label: 'Flashcards', icon: 'cards', group: 'Questões', hidden: true, badge: () => { const st = store.getState(); const f = window.OAB.lib.flashcards; const n = f.summary(st.errors, st.cards, U.todayISO()).due; return n || null; } },
+    { id: 'materiais', label: 'Materiais (PDF)', icon: 'file', group: 'Conteúdo', hidden: true },
+    { id: 'simulados', label: 'Simulados e metas', icon: 'target', group: 'Desempenho', hidden: true },
+    { id: 'prova', label: 'Modo prova', icon: 'timer', group: 'Desempenho', hidden: true, badge: () => (store.getState().draft ? '•' : null) },
+    { id: 'relatorio', label: 'Relatório e exportação', icon: 'file', group: 'Desempenho', hidden: true },
   ];
 
   let leaveFns = [];
@@ -40,7 +43,7 @@
     const nav = document.getElementById('nav');
     ui.clear(nav);
     let group = null;
-    ROUTES.forEach((r) => {
+    ROUTES.filter((r) => !r.hidden).forEach((r) => {
       if (r.group !== group) {
         group = r.group;
         nav.appendChild(h('p', { class: 'nav-group' }, group));
@@ -66,12 +69,15 @@
         s.status === 'ativa' ? 'Sessão em andamento' : 'Sessão pausada',
         h('span', { class: 'muted' }, ` · ${store.subjectName(s.subjectId)}`)));
     } else {
-      const block = store.cursorBlock();
-      if (block) {
-        chip.appendChild(h('a', { href: '#/inicio', class: 'status-chip' },
-          h('span', { class: 'dot idle' }),
-          `Próximo: ${store.subjectName(block.subjectId)}`));
-      }
+      // o chip segue a mesma sugestão da tela Hoje (o ciclo antigo não aparece mais no menu)
+      const st = store.getState();
+      const nameOf = (id) => { const x = store.subjectById(id); return x ? x.name : 'Disciplina removida'; };
+      const isActive = (id) => { const x = store.subjectById(id); return !!x && !x.archived; };
+      const topicOf = (id) => { const t = store.suggestedTopic(id); return t ? t.name : null; };
+      const sug = window.OAB.lib.week.suggestion(st.week, U.todayISO(), nameOf, window.OAB.lib.analytics.priorities(st), topicOf, isActive);
+      chip.appendChild(h('a', { href: '#/hoje', class: 'status-chip' },
+        h('span', { class: 'dot idle' }),
+        sug.title));
     }
   }
 
@@ -88,7 +94,7 @@
     } catch (err) {
       console.error(err);
       root.appendChild(ui.empty('Não foi possível exibir esta tela', `Erro: ${err.message}`,
-        h('a', { class: 'btn', href: '#/inicio' }, 'Voltar ao início')));
+        h('a', { class: 'btn', href: '#/hoje' }, 'Voltar ao início')));
     }
     renderNav(route.id);
     renderTopbar(route);
@@ -100,22 +106,13 @@
 
   /* ---------- paleta de comandos ---------- */
   function paletteCommands() {
-    const active = store.activeSession();
-    const next = store.suggestedTopic(store.cursorBlock() ? store.cursorBlock().subjectId : '');
-    const cmds = ROUTES.map((r) => ({ label: `Ir para ${r.label}`, hint: 'navegar', keys: r.label, run: () => go(r.id) }));
+    const cmds = ROUTES.filter((r) => !r.hidden).map((r) => ({ label: `Ir para ${r.label}`, hint: 'navegar', keys: r.label, run: () => go(r.id) }));
     cmds.push(
-      active
-        ? { label: 'Continuar sessão', hint: 'sessão', keys: 'retomar sessão timer', run: () => go('sessao') }
-        : { label: 'Iniciar sessão do próximo bloco', hint: 'sessão', keys: 'iniciar estudo timer', run: () => { store.startSession(next ? next.id : null); go('sessao'); } },
       { label: 'Novo registro de questões', hint: 'questões', keys: 'registrar questoes bloco', run: () => window.OAB.forms.log(null, { mode: 'bloco' }) },
       { label: 'Questão individual', hint: 'questões', keys: 'questao individual acerto erro chute', run: () => window.OAB.forms.log(null, { mode: 'individual' }) },
       { label: 'Novo item no caderno de erros', hint: 'caderno', keys: 'erro caderno', run: () => window.OAB.forms.errorEntry(null) },
-      { label: 'Novo simulado', hint: 'simulados', keys: 'simulado prova', run: () => window.OAB.forms.simulado(null) },
-      { label: 'Editar metas de acertos', hint: 'simulados', keys: 'meta acertos', run: () => window.OAB.forms.goals() },
       { label: 'Nova disciplina', hint: 'matérias', keys: 'materia disciplina', run: () => window.OAB.forms.subject(null) },
-      { label: 'Importar PDFs', hint: 'materiais', keys: 'pdf importar gran estrategia', run: () => { go('materiais'); setTimeout(() => { const b = [...document.querySelectorAll('button')].find((x) => /Importar PDFs/.test(x.textContent)); if (b) b.click(); }, 60); } },
       { label: 'Exportar backup', hint: 'sistema', keys: 'backup exportar json', run: () => { ui.download(`oab-estudos-backup-${U.todayISO()}.json`, store.exportBackup()); ui.toast('Backup exportado.', 'ok'); } },
-      { label: 'Modo foco na sessão', hint: 'sessão', keys: 'foco cinema modo', run: () => { go('sessao'); setTimeout(() => document.body.classList.add('focus-mode'), 80); } },
     );
     return cmds;
   }

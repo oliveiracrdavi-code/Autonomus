@@ -1,8 +1,6 @@
 # OAB Estudos · plataforma de estudo para a 1ª fase
 
-Plataforma web para organizar a preparação para a 1ª fase da OAB, com ciclo de estudos em blocos de 2 horas, registro de questões,
-caderno de erros, flashcards com repetição espaçada, modo prova cronometrado, simulados, materiais em PDF e um **tutor com IA e voz**
-(modelos da NVIDIA).
+Plataforma web para organizar a preparação para a 1ª fase da OAB. A versão atual é **enxuta**: o menu tem o calendário semanal (blocos por dia, editáveis, com marcação de feito), a tela **Hoje** (o que estudar agora), o registro de questões, o caderno de erros, as matérias e assuntos, o **tutor de estudo** só com o chat e as configurações. As demais telas (ciclo, sessão, flashcards, prova, simulados, materiais e relatório) continuam no código, fora do menu.
 
 O app funciona sem servidor (abra `index.html`). O tutor e a voz precisam do servidor local (`npm start`) e de uma chave da NVIDIA.
 
@@ -65,8 +63,10 @@ e a avaliação final é de quem ouve. O Magpie tem variações de emoção para
 | Questões | Registro por bloco ou individual. Na individual, o nível de certeza (certeza, dúvida ou chute) alimenta a matriz de certeza |
 | Caderno de erros | Erros e acertos por chute ou dúvida, status, histórico de tentativas, erros que se repetem e botão **Explicar com o tutor** |
 | Flashcards | Cada regra do caderno vira cartão no método de caixas (1, 2, 4, 7 e 15 dias) |
-| Revisão semanal | Itens do período escolhido, sem conteúdo novo e sem alterar o ciclo. Botão **Ouvir resumo da semana** |
-| Tutor de estudo | Chat com modos Tutor, Socrático, Chefe de banca, Feynman (explique em voz) e Resumo em áudio. Anexos de texto, microfone (voz para texto), respostas em voz e Markdown seguro |
+| Revisão semanal | Itens do período escolhido, sem conteúdo novo e sem alterar o ciclo. Botão **Resumo da semana com o tutor** (gera o texto no chat; não há áudio) |
+| Tutor de estudo | Só o chat. Respostas em Markdown seguro, histórico salvo no navegador e o botão **Explicar com o tutor** do caderno. Modos, anexos, voz e modelo ficam no código, fora da tela |
+| Calendário semanal | Blocos por dia da semana (disciplina, assunto e minutos), editáveis; marque o que foi feito em cada semana; navegue entre semanas |
+| Hoje | O que estudar agora (bloco pendente de hoje ou a disciplina mais prioritária), os blocos de hoje e o resumo da semana |
 | Materiais | Importação de PDFs, abertura dentro do app, página em que parou, pendências e associação ao bloco atual |
 | Matérias | 23 disciplinas (editáveis), assuntos com prioridade e status, cobertura, PDFs, erros e sessões por matéria |
 | Simulados | Comparação a cada duas semanas, metas editáveis e previsão a partir de 3 simulados |

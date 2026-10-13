@@ -102,13 +102,13 @@
     return { name, text: cut ? clean.slice(0, limit) : clean, truncated: cut };
   }
 
-  /** Mensagem pronta para pedir uma explicação de um item do caderno de erros. */
+  /** Mensagem pronta para pedir uma explicação de um item do caderno de erros.
+   * A anotação pessoal (entry.note) não entra: ela não sai do navegador. */
   function explainErrorText(entry, subjectName, topicName) {
     const where = [subjectName, topicName || entry.subtopic, entry.ref].filter(Boolean).join(' · ');
     const parts = [`Explique esta regra com calma, como se eu fosse fazer a prova amanhã. Tópico: ${where}.`];
     if (entry.rule) parts.push(`Regra que eu anotei: ${entry.rule}`);
     if (entry.reason) parts.push(`Por que eu errei: ${entry.reason}`);
-    if (entry.note) parts.push(`Minha anotação: ${entry.note}`);
     parts.push('Depois, crie um mnemônico curto e uma pergunta para eu testar a memória.');
     return parts.join('\n');
   }

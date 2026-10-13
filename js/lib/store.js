@@ -60,6 +60,10 @@
       if (!Array.isArray(out[k])) out[k] = [];
     }
     out.cursorId = C.sanitizeCursor(out.cycle, out.cursorId);
+    const week = s.week && typeof s.week === 'object' ? s.week : {};
+    // Backup editado à mão ou corrompido não deve derrubar a tela Hoje: descarta entradas que não são blocos.
+    const validBlocks = (Array.isArray(week.blocks) ? week.blocks : []).filter((b) => b && typeof b === 'object' && typeof b.id === 'string');
+    out.week = { blocks: validBlocks, done: Array.isArray(week.done) ? week.done.filter((k) => typeof k === 'string') : [] };
     return out;
   }
 
@@ -287,6 +291,37 @@
       .map((l) => ({ subjectId: l.subjectId, total: l.total, correct: l.correct, blank: l.blank, wrong: l.wrong }));
   }
 
+  /* ---------- ações: calendário semanal ---------- */
+  function addWeekBlock(value) {
+    return update(() => {
+      state.week.blocks.push({ id: U.uid('blk'), ...value });
+    });
+  }
+
+  function updateWeekBlock(id, value) {
+    return update(() => {
+      const i = state.week.blocks.findIndex((b) => b.id === id);
+      if (i >= 0) state.week.blocks[i] = { ...state.week.blocks[i], ...value, id };
+    });
+  }
+
+  function deleteWeekBlock(id) {
+    return update(() => {
+      state.week.blocks = state.week.blocks.filter((b) => b.id !== id);
+      state.week.done = state.week.done.filter((k) => !k.endsWith(`|${id}`));
+    });
+  }
+
+  /** Marca ou desmarca um bloco como feito na semana (segunda-feira `weekStart`). */
+  function toggleWeekDone(weekStart, id) {
+    return update(() => {
+      const key = `${weekStart}|${id}`;
+      const i = state.week.done.indexOf(key);
+      if (i >= 0) state.week.done.splice(i, 1);
+      else state.week.done.push(key);
+    });
+  }
+
   function setGoals(goals) {
     return update(() => {
       state.goals = goals;
@@ -328,6 +363,10 @@
       state.subjects = state.subjects.filter((s) => s.id !== id);
       state.topics = state.topics.filter((t) => t.subjectId !== id);
       state.cycle = state.cycle.filter((b) => b.subjectId !== id);
+      // Blocos do calendário semanal da matéria também saem, junto com a marcação de "feito".
+      const removedBlocks = new Set(state.week.blocks.filter((b) => b.subjectId === id).map((b) => b.id));
+      state.week.blocks = state.week.blocks.filter((b) => b.subjectId !== id);
+      state.week.done = state.week.done.filter((k) => !removedBlocks.has(k.split('|')[1]));
       state.cursorId = C.sanitizeCursor(state.cycle, state.cursorId);
     });
     return { ok: true };
@@ -736,6 +775,7 @@
     suggestedTopic, lastStudiedTopic, materialsForBlock, simuladoBreakdown,
     addLog, updateLog, deleteLog, addError, updateError, deleteError, setErrorStatus, addAttempt,
     addSimulado, updateSimulado, deleteSimulado, setGoals,
+    addWeekBlock, updateWeekBlock, deleteWeekBlock, toggleWeekDone,
     addSubject, updateSubject, setSubjectArchived, deleteSubject,
     addTopic, updateTopic, deleteTopic, setTopicStatus,
     addMaterial, updateMaterial, deleteMaterial, toggleMaterialOnBlock, getMaterialFile,

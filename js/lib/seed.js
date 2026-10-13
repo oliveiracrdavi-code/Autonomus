@@ -103,6 +103,7 @@
       materials: [],
       settings: { plannedTheoryMin: 60, plannedQuestionsMin: 60, examDate: null, dailyGoal: { minutes: 120, questions: 40, reviews: 10 }, provaMin: 300, provaQuestions: 80 },
       cards: [],
+      week: { blocks: [], done: [] },
       draft: null,
     };
   }
