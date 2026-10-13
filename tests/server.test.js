@@ -124,6 +124,12 @@ test('voz: divisão de trecho acontece perto do meio e em espaço', () => {
   assert.equal(v.splitInTwo('palavra'), null);
 });
 
+test('env: comentário no fim da linha não entra no valor, mas entre aspas sim', () => {
+  const { parseEnv } = require('../server/env');
+  assert.equal(parseEnv('NVIDIA_API_KEYS=nvapi-a # minha chave').NVIDIA_API_KEYS, 'nvapi-a');
+  assert.equal(parseEnv('X="a # b"').X, 'a # b');
+});
+
 test('env: lê KEY=VALUE, ignora comentários e aspas, e não sobrescreve o ambiente', () => {
   const { parseEnv, loadEnvFile } = require('../server/env');
   const parsed = parseEnv('# comentario\n\nNVIDIA_API_KEYS="nvapi-EXEMPLO-1,nvapi-EXEMPLO-2"\nPORT=9000\nlinha invalida\n');
@@ -160,6 +166,27 @@ test('segurança: erro de requisição da NVIDIA é devolvido sem a chave ecoada
 
 test('segurança: caminho estático com % mal formado responde nulo, sem erro', () => {
   assert.equal(staticFile('/%E0%A4%A'), null);
+});
+
+test('segurança: ".." e %2f não levam para fora de css, js e docs', () => {
+  assert.equal(staticFile('/js/../server/server.js'), null);
+  assert.equal(staticFile('/css/..%2fserver%2fkeys.js'), null);
+  assert.equal(staticFile('/js/../package.json'), null);
+  assert.ok(staticFile('/js/app.js'));
+});
+
+test('segurança: placeholder do .env.example não conta como chave e chave curta não aparece em parte', () => {
+  assert.deepEqual(parseKeys({ NVIDIA_API_KEYS: 'nvapi-SUBSTITUA-PELA-SUA-CHAVE' }), []);
+  assert.equal(maskKey('abc'), '••••');
+});
+
+test('servidor: HOST fora do loopback não sobe sem OAB_ALLOW_REMOTE=1', () => {
+  const { spawnSync } = require('child_process');
+  const env = { ...process.env, HOST: '0.0.0.0', PORT: '0' };
+  delete env.OAB_ALLOW_REMOTE;
+  const r = spawnSync(process.execPath, [path.join(__dirname, '..', 'server', 'server.js')], { env, encoding: 'utf8', timeout: 8000 });
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /OAB_ALLOW_REMOTE/);
 });
 
 /** Requisição HTTP crua, para controlar o cabeçalho Host (um navegador não deixa definir). */

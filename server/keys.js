@@ -5,13 +5,14 @@
 /** Lê NVIDIA_API_KEYS (separadas por vírgula) ou NVIDIA_API_KEY. Ignora vazias e duplicadas. */
 function parseKeys(env) {
   const raw = [env.NVIDIA_API_KEYS || '', env.NVIDIA_API_KEY || ''].join(',');
-  const keys = raw.split(/[,\s]+/).map((k) => k.trim()).filter((k) => k.length > 0);
+  const keys = raw.split(/[,\s]+/).map((k) => k.trim()).filter((k) => k.length > 0 && !/SUBSTITUA/.test(k)); // ignora o placeholder do .env.example
   return [...new Set(keys)];
 }
 
-/** Mascara uma chave para exibição segura (ex.: nvapi-…Ab12). */
+/** Mascara uma chave para exibição segura (ex.: nvapi-…Ab12). Chave curta não aparece em parte. */
 function maskKey(key) {
   if (!key) return '';
+  if (key.length < 12) return '••••';
   return `${key.slice(0, 6)}…${key.slice(-4)}`;
 }
 

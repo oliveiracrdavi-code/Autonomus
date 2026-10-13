@@ -30,7 +30,7 @@
     try {
       const saved = JSON.parse(localStorage.getItem(KEY) || 'null');
       if (saved && Array.isArray(saved.messages)) {
-        conv.messages = saved.messages.slice(-MAX_SAVED);
+        conv.messages = saved.messages.filter((m) => m && typeof m.content === 'string' && (m.role === 'user' || m.role === 'assistant')).slice(-MAX_SAVED);
         ['mode', 'model', 'voice', 'useData', 'autoSpeak'].forEach((k) => { if (saved[k] !== undefined) conv[k] = saved[k]; });
       }
     } catch (e) { /* armazenamento indisponível: segue só com a memória da aba */ }
@@ -104,7 +104,8 @@
     if (conv.busy || (!text && conv.attachments.length === 0)) return;
     if (!serverStatus || serverStatus.offline || !serverStatus.chat.available) return ui.toast('O tutor precisa do servidor com a chave da NVIDIA.', 'warn');
 
-    const history = conv.messages.map((m) => ({ role: m.role, content: m.content }));
+    // mensagens de erro não entram no histórico enviado ao modelo: não são respostas dele
+    const history = conv.messages.filter((m) => !m.error).map((m) => ({ role: m.role, content: m.content }));
     const attachments = conv.attachments.map((a) => T.prepareAttachment(a.name, a.text));
     const names = conv.attachments.map((a) => a.name);
     const context = conv.useData ? T.studentContext(store.getState(), Date.now()) : null;
@@ -128,21 +129,22 @@
     }
   }
 
-  async function toggleMic(btn) {
+  async function toggleMic() {
     if (conv.recording) {
-      btn.disabled = true;
-      btn.textContent = 'Transcrevendo…';
+      conv.transcribing = true;
+      update();
       try {
         const text = await conv.recording.stop();
-        conv.recording = null;
         const composer = document.getElementById('tutor-input');
         if (text && composer) { composer.value = (composer.value ? `${composer.value} ` : '') + text; composer.focus(); }
         else ui.toast('Não ouvi nada. Tente de novo.', 'warn');
       } catch (e) {
-        conv.recording = null;
         ui.toast(`Não foi possível transcrever: ${e.message}`, 'warn');
+      } finally {
+        conv.recording = null;
+        conv.transcribing = false;
+        update();
       }
-      update();
       return;
     }
     if (!serverStatus || serverStatus.offline || !serverStatus.voice.available) return ui.toast('O microfone precisa do servidor com a voz ativa.', 'warn');
@@ -192,15 +194,20 @@
     });
   }
 
+  /** Aplica um pedido de outra tela: envia direto ou só prepara o texto no campo. */
+  function applySeed(seed) {
+    if (seed.autoSend) send(seed.text, !!seed.autoSpeak);
+    else { const el = document.getElementById('tutor-input'); if (el) { el.value = seed.text; el.focus(); } }
+  }
+
   function view(params, ctx) {
     load();
     const seed = consumeSeed();
+    let pendingSeed = null;
+    // pedido de outra tela: só age depois que o status do servidor chega (antes disso o envio é recusado)
     if (seed && seed.text) {
-      // pedido de outra tela: envia direto ou só prepara o texto
-      setTimeout(() => {
-        if (seed.autoSend) send(seed.text, !!seed.autoSpeak);
-        else { const el = document.getElementById('tutor-input'); if (el) { el.value = seed.text; el.focus(); } }
-      }, 0);
+      if (serverStatus) setTimeout(() => applySeed(seed), 0);
+      else pendingSeed = seed;
     }
 
     list = h('div', { class: 'chat-list', 'aria-live': 'polite' });
@@ -208,7 +215,7 @@
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
 
     const fileInput = h('input', { type: 'file', accept: '.txt,.md,.csv,.json,text/plain', hidden: true, 'aria-hidden': 'true', onchange: (e) => attachFile(e.target) });
-    const micBtn = h('button', { class: 'btn ghost', type: 'button', 'aria-label': 'Falar com o tutor', onclick: (e) => toggleMic(e.currentTarget) }, '🎙 Falar');
+    const micBtn = h('button', { class: 'btn ghost', type: 'button', 'aria-label': 'Falar com o tutor', onclick: () => toggleMic() }, '🎙 Falar');
     const sendBtn = h('button', { class: 'btn primary', type: 'button', onclick: () => send() }, ui.icon('arrowUp'), 'Enviar');
     const attachBar = h('div', { class: 'attach-bar' });
     const refreshAttach = () => {
@@ -224,7 +231,7 @@
         h('span', { class: 'grow' }),
         sendBtn));
 
-    const refreshAll = () => { refreshAttach(); micBtn.textContent = conv.recording ? '⏺ Parar' : '🎙 Falar'; micBtn.classList.toggle('danger', !!conv.recording); sendBtn.disabled = conv.busy; };
+    const refreshAll = () => { refreshAttach(); micBtn.textContent = conv.transcribing ? 'Transcrevendo…' : conv.recording ? '⏺ Parar' : '🎙 Falar'; micBtn.disabled = !!conv.transcribing; micBtn.classList.toggle('danger', !!conv.recording && !conv.transcribing); sendBtn.disabled = conv.busy; };
     controls = { refresh: refreshAll };
 
     const modelOpts = (serverStatus && serverStatus.chat.models || []).map((m) => ({ value: m.id, label: m.label }));
@@ -247,7 +254,11 @@
 
     // carrega o status do servidor em segundo plano e redesenha
     if (!serverStatus) {
-      window.OAB.voice.status().then((s) => { serverStatus = s; window.OAB.app.refresh(); });
+      window.OAB.voice.status().then((s) => {
+        serverStatus = s;
+        window.OAB.app.refresh();
+        if (pendingSeed) { const waiting = pendingSeed; pendingSeed = null; setTimeout(() => applySeed(waiting), 0); }
+      });
     }
 
     const chatCard = ui.card(null, h('div', { class: 'chat-wrap' }, list, composerBox), { cls: 'chat-card' });
@@ -259,7 +270,7 @@
       h('button', { class: 'btn ghost', type: 'button', onclick: () => { conv.messages = []; conv.attachments = []; save(); update(); } }, 'Novo chat'),
       h('div', { class: 'notice warn' },
         h('strong', null, 'Privacidade'),
-        h('p', { class: 'small' }, 'Mensagens, anexos e áudios são enviados à NVIDIA para gerar as respostas. Não envie dados pessoais nem material sigiloso.')),
+        h('p', { class: 'small' }, 'Mensagens, anexos e áudios são enviados à NVIDIA para gerar as respostas, e a NVIDIA pode registrá-los conforme os termos do serviço de teste. Não envie dados pessoais nem material sigiloso.')),
       h('div', { class: 'notice' },
         h('strong', null, 'Confira sempre a lei'),
         h('p', { class: 'small' }, 'A IA pode errar artigos e jurisprudência. Valide na fonte oficial antes de estudar um tema como verdade.'))),

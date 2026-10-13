@@ -18,6 +18,8 @@ const VOICES = [
   { id: 'Magpie-Multilingual.PT-BR.Diego', label: 'Diego · masculina' },
 ];
 const VOICE_IDS = new Set(VOICES.map((v) => v.id));
+// Códigos gRPC que justificam trocar de chave: prazo, não encontrado, sem permissão, cota esgotada, indisponível e não autenticado.
+const KEY_RETRY_CODES = new Set([4, 5, 7, 8, 14, 16]);
 
 let grpc = null;
 let loader = null;
@@ -151,7 +153,7 @@ async function synthesize({ keys, text, voice, timeoutMs = 60000 }) {
     } catch (err) {
       client.close();
       lastErr = err;
-      if ([4, 5, 7, 16].includes(err.code)) continue; // tempo esgotado, sem função/permissão ou não autenticado: próxima chave
+      if (KEY_RETRY_CODES.has(err.code)) continue; // próxima chave
       throw Object.assign(new Error(`Falha na síntese de voz (${err.message.slice(0, 120)})`), { status: 502 });
     }
   }
@@ -174,7 +176,7 @@ async function transcribe({ keys, pcm, language = 'multi', timeoutMs = 120000 })
       return { text };
     } catch (err) {
       lastErr = err;
-      if ([4, 5, 7, 16].includes(err.code)) continue;
+      if (KEY_RETRY_CODES.has(err.code)) continue;
       throw Object.assign(new Error(`Falha na transcrição (${err.message.slice(0, 120)})`), { status: 502 });
     }
   }

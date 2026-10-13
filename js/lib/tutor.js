@@ -71,7 +71,7 @@
       weak.length ? `Disciplinas que mais precisam de atenção: ${weak.map((r) => `${r.name} (${U.fmtPct(r.pct)} em ${r.total} questões)`).join('; ')}.` : null,
       strong.length ? `Disciplinas mais fortes: ${strong.map((r) => `${r.name} (${U.fmtPct(r.pct)})`).join('; ')}.` : null,
       open.length ? `Itens em aberto no caderno de erros: ${open.length}.` : null,
-      recurring.length ? `Assuntos com erros repetidos: ${recurring.map((g) => `${g.label || 'sem assunto'} (${subjectNameOf(state, g.subjectId)})`).join('; ')}.` : null,
+      recurring.length ? `Matérias com erros repetidos: ${recurring.map((g) => `${subjectNameOf(state, g.subjectId)} (${g.errorCount + g.flagged} erros)`).join('; ')}.` : null,
     ].filter(Boolean);
     return lines.join(' ');
   }
@@ -86,7 +86,7 @@
     const base = (MODES[mode] || MODES.tutor).system;
     const system = context ? `${base}\n\nContexto do estudante (agregado, use para personalizar): ${context}` : base;
     const recent = history.filter((m) => m && (m.role === 'user' || m.role === 'assistant')).slice(-maxTurns * 2);
-    const attached = attachments.map((a) => `--- Anexo: ${a.name} ---\n${a.text}`).join('\n\n');
+    const attached = attachments.map((a) => `--- Anexo: ${a.name}${a.truncated ? ' (texto cortado: só o início foi enviado)' : ''} ---\n${a.text}`).join('\n\n');
     const user = [attached, userText].filter(Boolean).join('\n\n');
     return [
       { role: 'system', content: system },

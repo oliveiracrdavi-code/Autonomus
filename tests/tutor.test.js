@@ -22,6 +22,24 @@ test('contexto do estudante: resume números sem nome pessoal', () => {
   assert.match(ctx, /Disciplinas que mais precisam de atenção/);
 });
 
+test('contexto do estudante: anotação livre do caderno nunca sai no contexto', () => {
+  const s = initial();
+  const secret = 'Minha anotação pessoal secreta';
+  s.errors = [
+    { id: 'e1', subjectId: s.subjects[0].id, subtopic: secret, kind: 'erro', status: 'recorrente' },
+    { id: 'e2', subjectId: s.subjects[0].id, subtopic: secret, kind: 'erro', status: 'pendente' },
+  ];
+  const ctx = tutor.studentContext(s, 0);
+  assert.ok(!ctx.includes(secret));
+  assert.match(ctx, /Matérias com erros repetidos/);
+});
+
+test('mensagens: anexo cortado avisa o modelo', () => {
+  const att = tutor.prepareAttachment('lei.txt', 'x'.repeat(50000));
+  const msgs = tutor.buildMessages({ userText: 'resuma', attachments: [att] });
+  assert.match(msgs[msgs.length - 1].content, /texto cortado/);
+});
+
 test('contexto do estudante: sem registros não envia nada', () => {
   const s = initial();
   s.logs = [];

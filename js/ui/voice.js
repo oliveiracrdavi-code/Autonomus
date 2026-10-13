@@ -59,9 +59,17 @@
     if (!navigator.mediaDevices || !window.MediaRecorder) throw new Error('Este navegador não permite gravar áudio.');
     const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
     const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'].find((m) => MediaRecorder.isTypeSupported(m)) || '';
-    const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+    let rec;
+    try {
+      rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+    } catch (err) {
+      stream.getTracks().forEach((t) => t.stop());
+      throw err;
+    }
     const chunks = [];
     rec.addEventListener('dataavailable', (e) => { if (e.data && e.data.size) chunks.push(e.data); });
+    // o microfone é solto assim que o gravador para (inclusive no limite automático), depois da última parte gravada
+    rec.addEventListener('stop', () => stream.getTracks().forEach((t) => t.stop()), { once: true });
     const stopped = new Promise((resolve) => rec.addEventListener('stop', resolve, { once: true }));
     rec.start(250);
     const timer = setTimeout(() => { if (rec.state !== 'inactive') rec.stop(); }, MAX_RECORD_MS);

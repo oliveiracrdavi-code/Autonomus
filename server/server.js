@@ -4,12 +4,14 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+
+const ROOT = path.resolve(__dirname, '..');
+// Carrega o .env antes dos demais módulos: eles leem o ambiente (URLs, IDs de função) ao carregar.
+require('./env').loadEnvFile(path.join(ROOT, '.env'));
 const { parseKeys, redact } = require('./keys');
 const nvidia = require('./nvidia');
 const voice = require('./voice');
 
-const ROOT = path.resolve(__dirname, '..');
-require('./env').loadEnvFile(path.join(ROOT, '.env')); // carrega .env (se existir) antes de ler as variáveis
 const PORT = Number(process.env.PORT || 8080);
 const HOST = process.env.HOST || '127.0.0.1';
 const KEYS = parseKeys(process.env);
@@ -19,8 +21,10 @@ const STATIC_DIRS = ['css', 'js', 'docs'];
 const LIMITS = { json: 1024 * 1024, tts: 64 * 1024, asr: 12 * 1024 * 1024 };
 
 const SECURITY = { 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'X-Frame-Options': 'SAMEORIGIN' };
-// Só aceita o próprio endereço local no cabeçalho Host (bloqueia DNS rebinding de outros sites).
-const LOCAL_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]', HOST]);
+// Com HOST de loopback, só aceita o próprio endereço local no cabeçalho Host (bloqueia DNS rebinding de outros sites).
+const LOOPBACK = new Set(['127.0.0.1', 'localhost', '::1']);
+const IS_LOOPBACK = LOOPBACK.has(HOST);
+const LOCAL_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]']);
 // Corpos de API só com tipos que exigem pré-verificação CORS: um formulário de outro site não consegue enviá-los.
 const API_BODY_TYPES = new Set(['application/json', 'application/octet-stream']);
 
@@ -50,9 +54,10 @@ function staticFile(urlPath) {
   let decoded;
   try { decoded = decodeURIComponent(urlPath.split('?')[0]); } catch (e) { return null; } // % mal formado
   const rel = decoded === '/' ? 'index.html' : decoded.replace(/^\/+/, '');
-  if (rel !== 'index.html' && !STATIC_DIRS.includes(rel.split('/')[0])) return null;
+  // Confere o caminho já resolvido (".." e %2f contam): precisa estar dentro de uma pasta permitida.
   const full = path.resolve(ROOT, rel);
-  if (!full.startsWith(ROOT + path.sep) && full !== path.join(ROOT, 'index.html')) return null;
+  const inAllowedDir = STATIC_DIRS.some((dir) => full.startsWith(path.join(ROOT, dir) + path.sep));
+  if (!inAllowedDir && full !== path.join(ROOT, 'index.html')) return null;
   const ext = path.extname(full).toLowerCase();
   if (!TYPES[ext]) return null;
   try {
@@ -101,7 +106,7 @@ const server = http.createServer(async (req, res) => {
   const url = req.url || '/';
   try {
     const hostName = String(req.headers.host || '').replace(/:\d+$/, '');
-    if (!LOCAL_HOSTS.has(hostName)) return sendJson(res, 403, { error: 'Acesso permitido apenas pelo endereço local do servidor.' });
+    if (IS_LOOPBACK && !LOCAL_HOSTS.has(hostName)) return sendJson(res, 403, { error: 'Acesso permitido apenas pelo endereço local do servidor.' });
     if (url.startsWith('/api/')) return await handleApi(req, res, url.split('?')[0]);
     if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Método não permitido');
     if (url === '/favicon.ico') return send(res, 204, '');
@@ -119,6 +124,10 @@ const server = http.createServer(async (req, res) => {
 });
 
 if (require.main === module) {
+  if (!IS_LOOPBACK && process.env.OAB_ALLOW_REMOTE !== '1') {
+    console.error(`HOST=${HOST} deixa o servidor acessível pela rede, sem autenticação, junto com as chaves da NVIDIA. Para aceitar isso, defina OAB_ALLOW_REMOTE=1.`);
+    process.exit(1);
+  }
   server.listen(PORT, HOST, () => {
     console.log(`OAB Estudos em http://${HOST}:${PORT}`);
     console.log(`Chaves da NVIDIA configuradas: ${KEYS.length} (valores não são exibidos)`);

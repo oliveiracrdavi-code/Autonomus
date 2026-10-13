@@ -11,7 +11,9 @@ function parseEnv(text) {
     const m = /^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/.exec(line);
     if (!m) continue;
     let value = m[2].trim();
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) value = value.slice(1, -1);
+    const quoted = (value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"));
+    if (quoted) value = value.slice(1, -1);
+    else value = value.replace(/\s+#.*$/, ''); // comentário no fim da linha (sem aspas) não faz parte do valor
     out[m[1]] = value;
   }
   return out;

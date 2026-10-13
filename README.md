@@ -17,8 +17,8 @@ npm start                        # http://127.0.0.1:8080
 - Sem `NVIDIA_API_KEYS`, o app inteiro funciona; só o tutor e a voz ficam indisponíveis, com um aviso na tela.
 - Você pode guardar as variáveis num arquivo `.env` (copie `.env.example`). O `.env` está no `.gitignore` e **nunca deve ir para o git**.
 - Se você colou uma chave em algum chat ou lugar público, **revogue e gere outra** no painel da NVIDIA.
-- O servidor escuta só em `127.0.0.1` por padrão. Para outro endereço, defina `HOST`.
-- Proteções locais: o servidor recusa cabeçalhos `Host` que não sejam o endereço local (evita que outro site use o servidor por DNS rebinding) e só aceita corpos de API em JSON ou PCM, que um formulário de outro site não consegue enviar. Qualquer texto de erro passa por uma remoção de chaves antes de sair.
+- O servidor escuta só em `127.0.0.1` por padrão. Outro endereço em `HOST` só sobe com `OAB_ALLOW_REMOTE=1`, e aí fica acessível pela rede **sem autenticação**: use só em rede de confiança.
+- Proteções locais: com `HOST` de loopback, o servidor recusa cabeçalhos `Host` que não sejam o endereço local (evita que outro site use o servidor por DNS rebinding) e só aceita corpos de API em JSON ou PCM, que um formulário de outro site não consegue enviar. Qualquer texto de erro passa por uma remoção de chaves antes de sair.
 
 ## Chaves e privacidade
 
