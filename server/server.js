@@ -6,7 +6,8 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const ROOT = path.resolve(__dirname, '..');
+// Na função serverless, os arquivos do site ficam na raiz da tarefa (LAMBDA_TASK_ROOT), não ao lado deste arquivo.
+const ROOT = process.env.LAMBDA_TASK_ROOT || path.resolve(__dirname, '..');
 // Carrega o .env antes dos demais módulos: eles leem o ambiente (URLs, IDs de função) ao carregar.
 require('./env').loadEnvFile(path.join(ROOT, '.env'));
 const { parseKeys, redact } = require('./keys');
@@ -27,7 +28,7 @@ const LOOPBACK = new Set(['127.0.0.1', 'localhost', '::1']);
 const IS_LOOPBACK = LOOPBACK.has(HOST);
 const LOCAL_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]']);
 // Hospedado (ex.: Vercel): o Host é o domínio público, e a proteção passa a ser a senha de acesso.
-const ON_PLATFORM = !!process.env.VERCEL;
+const ON_PLATFORM = !!(process.env.VERCEL || process.env.LAMBDA_TASK_ROOT);
 const BASIC_AUTH = process.env.OAB_BASIC_AUTH || ''; // "usuario:senha"; se definido, protege todo o site
 // Corpos de API só com tipos que exigem pré-verificação CORS: um formulário de outro site não consegue enviá-los.
 const API_BODY_TYPES = new Set(['application/json', 'application/octet-stream']);

@@ -32,7 +32,8 @@ function load() {
   try {
     grpc = require('@grpc/grpc-js');
     loader = require('@grpc/proto-loader');
-    const opts = { includeDirs: [path.join(__dirname, 'proto')], keepCase: true, longs: Number, enums: String, defaults: true, oneofs: true };
+    const protoDir = process.env.LAMBDA_TASK_ROOT ? path.join(process.env.LAMBDA_TASK_ROOT, 'server', 'proto') : path.join(__dirname, 'proto');
+    const opts = { includeDirs: [protoDir], keepCase: true, longs: Number, enums: String, defaults: true, oneofs: true };
     const tts = grpc.loadPackageDefinition(loader.loadSync('riva/proto/riva_tts.proto', opts));
     const asr = grpc.loadPackageDefinition(loader.loadSync('riva/proto/riva_asr.proto', opts));
     stubs = {
